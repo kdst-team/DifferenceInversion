@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Difference Inversion: Interpolate and Isolate the Difference with Token Consistency for Image Analogy Generation</title>
+
+  <!-- Bulma CSS (for quick styling) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+  />
+  <!-- FontAwesome (for icons) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <!-- Custom CSS -->
+  <style>
+    /* Center and constrain overall content */
+    .container {
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero {
+      background-color: #f5f5f5;
+    }
+    .title {
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      margin-top: 0.5rem;
+      color: #555;
+    }
+    .authors a {
+      color: #3273dc;
+      text-decoration: none;
+    }
+    .buttons .button {
+      margin-right: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .section {
+      padding: 3rem 1.5rem;
+    }
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+    footer {
+      background-color: #fafafa;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+      <a class="navbar-item" href="https://gustn9609.github.io/difference-inversion">
+        <span class="icon">
+          <i class="fas fa-home"></i>
+        </span>
+      </a>
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false"
+         data-target="navbarBasic">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navbarBasic" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="#abstract">Abstract</a>
+        <a class="navbar-item" href="#results">Difference Inversion</a>
+        <a class="navbar-item" href="#quantitative">Quantitative Results</a>
+        <a class="navbar-item" href="#ablation">Qualitative Results</a>
+        <a class="navbar-item" href="#bibtex">BibTeX</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section with Title, Conference, and Authors -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <h1 class="title is-2">
+          Difference Inversion: Interpolate and Isolate the Difference with Token Consistency
+        </h1>
+        <div class="subtitle is-5 authors">
+          <a href="https://gustn9609.github.io/">Hyunsoo Kim</a><sup>1,2</sup>,
+          <a href="https://cs-people.bu.edu/donhk/">Donghyun Kim</a><sup>1†</sup>,
+          <a href="https://ce.khu.ac.kr/ce/user/bbs/BMSR00047/view.do">Suhyun Kim</a><sup>3†</sup><br>
+          <sup>1</sup>Korea University &nbsp; 
+          <sup>2</sup>Korea Institute of Science and Technology &nbsp; 
+          <sup>3</sup>Kyung Hee University
+        </div>
+
+        <!-- CVPR 2025, smaller and eye-catching color -->
+        <h4 class="subtitle is-3" style="color: #ff3860; margin-bottom: 1rem;">
+          CVPR 2025
+        </h4>
+
+        <div class="buttons is-centered">
+          <a
+            class="button is-dark is-rounded"
+            href="assets/DifferenceInversion_CVPR2025.pdf"
+            target="_blank"
+          >
+            <span class="icon">
+              <i class="fa-solid fa-file"></i>
+            </span>
+            <span>Arxiv</span>
+          </a>
+          <a
+            class="button is-link is-rounded"
+            href="https://github.com/gustn9609/difference-inversion"
+            target="_blank"
+          >
+            <span class="icon">
+              <i class="fab fa-github"></i>
+            </span>
+            <span>Code (Coming Soon)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Teaser Image (or first figure from paper) -->
+  <section class="section" id="results">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-three-quarters">
+          <!-- Example figure extracted from page 1 of PDF -->
+          <figure class="image" style="max-width: 80%; margin-left: auto; margin-right: auto;">
+            <img
+              src="assets/fig_teaser_final.png"
+              alt="Teaser: Comparison A → A′ → B → B′ across methods"
+            />
+          </figure>
+          <p class="has-text-centered is-size-7" style="margin-top: 0.5rem;">
+            <em>
+              Figure: The goal of image analogy generation is to generate plausible B' based on the image triplet {A, A', B}, ensuring that it satisfies the image analogy generation formulation A:A'=B:B'.
+            </em>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract Section -->
+  <section class="section" id="abstract">
+    <div class="container">
+      <h2 class="title is-3 has-text-centered">Abstract</h2>
+      <div class="content">
+        <p>
+          How can we generate an image B' that satisfies A:A'::B:B', given the input images A,A' and B?
+          Recent works have tackled this challenge through approaches like visual in-context learning or visual instruction. However, these methods are typically limited to specific models (e.g. InstructPix2Pix, inpainting models) rather than general diffusion models (e.g. Stable Diffusion, SDXL). This dependency may lead to inherited biases or lower editing capabilities. In this paper, we propose Difference Inversion, a method that isolates only the difference from A and A' and applies it to B to generate a plausible B'. To address model dependency, it is crucial to structure prompts in the form of a "Full Prompt" suitable for input to stable diffusion models, rather than using an "Instruction Prompt". To this end, we accurately extract the Difference between A and A' and combine it with the prompt of B, enabling a plug-and-play application of the difference. To extract a precise difference, we first identify it through 1) Delta Interpolation. Additionally, to ensure accurate training, we propose the 2) Token Consistency Loss and 3) Zero Initialization of Token Embeddings. Our extensive experiments demonstrate that Difference Inversion outperforms existing baselines both quantitatively and qualitatively, indicating its ability to generate more feasible B' in a model-agnostic manner.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Method / Main Figure -->
+  <section class="section" id="results-gallery">
+    <div class="container">
+      <h2 class="title is-3 has-text-centered">Difference Inversion</h2>
+      <div class="columns is-centered">
+        <!-- Example result image; replace with actual asset -->
+        <div class="column is-two-quarters">
+          <div class="image-wrapper" style="max-width: 90%; margin-left: auto; margin-right: auto;">
+            <img src="assets/fig_main.png" alt="Result 1" />
+          </div>
+        </div>
+      </div>
+      <div class="content" style="margin-top: 2rem;">
+        <ul>
+          <li>
+            <strong>Delta Interpolation:</strong> Rather than relying solely on image‐space differences, we extract both an Image Delta (CLIP‐image embedding difference) and a Text Delta (CLIP‐text embedding difference from BLIP2 captions), then apply spherical linear interpolation (α=0.8) in CLIP’s joint hypersphere. This yields a more precise Delta that captures both visual and semantic changes between A and A′. 
+          </li>
+          <li>
+            <strong>Token Consistency Loss:</strong> To ensure the Difference Tokens encode only the intended modifications, we enforce bidirectional consistency: when \( \widetilde{D} \) is concatenated with prompt A, the model reconstructs A′; when \( \widetilde{D} \) is negated or removed with prompt A′, it reconstructs A. We implement this via a two‐term MSE loss on predicted noise (before/after) so that \( \widetilde{D} \) activates only the exact difference-information. 
+          </li>
+          <li>
+            <strong>Zero-Initialization of Token Embeddings:</strong> All Difference Tokens are initialized to zero, preventing any unintended artifacts. Starting from zero ensures that optimization focuses exclusively on learning the precise difference, stabilizing training and minimizing spurious artifacts. 
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Qualitative Results -->
+  <section class="section" id="results-gallery-qual">
+    <div class="container">
+      <h2 class="title is-3 has-text-centered">Qualitative Results</h2>
+      <div class="columns is-centered">
+        <!-- Example main result image; replace with actual asset -->
+        <div class="column is-two-quarters">
+          <figure class="image" style="max-width: 95%; margin-left: auto; margin-right: auto;">
+            <img src="assets/fig_teaser_fig.png" alt="Qualitative Result" />
+          </figure>
+          <p>
+            In our experiments, Difference Inversion generates visually more natural and accurate B′ images compared to existing baselines under the A:A′::B:B′ analogy. Specifically, it applies the transformation from A to A′ onto B while preserving B’s original structure and details. Across various examples—such as human faces, object backgrounds, and lighting changes—our method consistently produces clean, high-quality outputs, demonstrating significant visual improvements.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quantitative Results -->
+  <section class="section" id="quantitative">
+    <div class="container">
+      <h2 class="title is-3 has-text-centered">Quantitative Results</h2>
+
+      <!-- Image on top -->
+      <div class="columns is-centered">
+        <div class="column is-full has-text-centered">
+          <figure class="image" style="max-width: 90%; margin: 0 auto;">
+            <img src="assets/quantitative_final.png" alt="Quantitative 1" />
+          </figure>
+        </div>
+      </div>
+
+      <!-- Text below -->
+      <div class="content" style="margin-top: 2rem;">
+        <ul>
+          <li>
+            <strong>Top:</strong> CLIP and DINO directional similarity &mdash; measures how well the generated B′ aligns with the A:A′ transformation in embedding space, indicating semantic and visual fidelity.
+          </li>
+          <li>
+            <strong>Bottom-left:</strong> Human evaluation &mdash; collects perceptual ratings from human annotators to assess the realism and adherence of B′ to the intended analogy, providing a subjective quality check.
+          </li>
+          <li>
+            <strong>Bottom-right:</strong> Large-scale VLM evaluation &mdash; uses large vision–language models to automatically score how plausibly B′ satisfies the A:A′::B:B′ relationship, enabling scalable, objective assessment.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- BibTeX Section -->
+  <section class="section" id="bibtex">
+    <div class="container">
+      <h2 class="title is-3 has-text-centered">BibTeX</h2>
+      <div class="box">
+        <pre><code>@inproceedings{kim2025difference,
+  title     = {Difference Inversion: Interpolate and Isolate the Difference with Token Consistency for Image Analogy Generation},
+  author    = {Kim, Hyunsoo and Kim, Donghyun and Kim, Suhyun},
+  booktitle = {CVPR},
+  year      = {2025},
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Difference Inversion</strong> by
+        <a href="https://github.com/climba">Hyunsoo Kim</a>, 
+        <a href="https://github.com/donghkim">Donghyun Kim</a>, and 
+        <a href="mailto:dr.suhyun.kim@gmail.com">Suhyun Kim</a>.
+      </p>
+      <p>
+        &copy; 2025. Released under a&nbsp;
+        <a
+          href="https://creativecommons.org/licenses/by-sa/4.0/"
+          target="_blank"
+        >
+          CC BY-SA 4.0
+        </a>
+        License.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Navbar burger script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const burger = document.querySelector(".navbar-burger");
+      const menu = document.getElementById("navbarBasic");
+      burger.addEventListener("click", () => {
+        burger.classList.toggle("is-active");
+        menu.classList.toggle("is-active");
+      });
+    });
+  </script>
+</body>
+</html>
